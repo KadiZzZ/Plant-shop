@@ -1,9 +1,11 @@
 import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Items from "./components/Items";
 import ShowFullItem from "./components/ShowFullItem";
-
+import CheckoutPage from "./components/CheckoutPage";
+import { CheckoutProvider } from './context/CheckoutContext';
 
 class App extends React.Component {
   constructor(props){
@@ -83,47 +85,63 @@ class App extends React.Component {
           category:'',
           price: '6490'
         },
-        
-
-
       ],
       showFullItem: false,
       fullItem: {}
     }
-    this.addToOrder = this.addToOrder.bind(this)
-    this.deleteOrder = this.deleteOrder.bind(this)
-    this.onShowItem = this.onShowItem.bind(this)
-
+    this.addToOrder = this.addToOrder.bind(this);
+    this.deleteOrder = this.deleteOrder.bind(this);
+    this.onShowItem = this.onShowItem.bind(this);
   }
-  render(){
+
+  render() {
     return (
-      <div className="wrapper">
-        <Header orders={this.state.orders} onDelete={this.deleteOrder}/>
-        <Items onShowItem={this.onShowItem} items={this.state.items} onAdd={this.addToOrder} />
-        {this.state.showFullItem && <ShowFullItem onAdd={this.addToOrder} onShowItem={this.onShowItem} item={this.state.fullItem}/>}
-        <Footer />
-      </div>
-    )
+      <Router>
+        <div className="wrapper">
+          <Header orders={this.state.orders} onDelete={this.deleteOrder} />
+          <CheckoutProvider>  {/* Обернули CheckoutPage в CheckoutProvider */}
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    <Items
+                      onShowItem={this.onShowItem}
+                      items={this.state.items}
+                      onAdd={this.addToOrder}
+                    />
+                    {this.state.showFullItem && (
+                      <ShowFullItem
+                        onAdd={this.addToOrder}
+                        onShowItem={this.onShowItem}
+                        item={this.state.fullItem}
+                      />
+                    )}
+                  </>
+                }
+              />
+              <Route path="/checkout" element={<CheckoutPage />} />
+            </Routes>
+          </CheckoutProvider>
+          <Footer />
+        </div>
+      </Router>
+    );
   }
 
-  onShowItem(item){
-    this.setState({fullItem: item})
-    this.setState({showFullItem: !this.state.showFullItem})
+  onShowItem(item) {
+    this.setState({ fullItem: item, showFullItem: !this.state.showFullItem });
   }
 
-  deleteOrder(id){
-    this.setState({orders: this.state.orders.filter(el => el.id !== id)})
+  deleteOrder(id) {
+    this.setState({ orders: this.state.orders.filter((el) => el.id !== id) });
   }
 
   addToOrder(item) {
-      let isInArray = false
-      this.state.orders.forEach(el => {
-        if(el.id === item.id)
-          isInArray = true
-
-      })
-      if(!isInArray)
-         this.setState({orders: [...this.state.orders, item]})
+    let isInArray = this.state.orders.some((el) => el.id === item.id);
+    if (!isInArray) {
+      this.setState({ orders: [...this.state.orders, item] });
+    }
   }
 }
 
