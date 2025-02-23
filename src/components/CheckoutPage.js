@@ -1,19 +1,43 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCheckout } from "../context/CheckoutContext"; // Импортируем хук для работы с контекстом
 
 export default function CheckoutPage() {
-  const { userInfo, updateUserInfo } = useCheckout(); // Получаем данные из контекста
-  const [name, setName] = useState(userInfo.firstName); // Инициализируем состояние из контекста
-  const [surname, setSurname] = useState(userInfo.lastName);
-  const [pickupDate, setPickupDate] = useState(userInfo.pickupDate);
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [pickupDate, setPickupDate] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    updateUserInfo({ firstName: name, lastName: surname, pickupDate }); // Обновляем контекст с новыми данными
-    alert(`Заказ оформлен на имя: ${name} ${surname}, дата получения: ${pickupDate}`);
-    navigate("/"); // Переход на главную страницу после оформления
+
+    // Логируем данные перед отправкой, чтобы увидеть, что мы отправляем
+    console.log("Отправляем данные:", {
+      firstName: name,
+      lastName: surname,
+      pickupDate: pickupDate,
+    });
+
+    fetch('http://localhost:5000/submit-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        firstName: name,
+        lastName: surname,
+        pickupDate: pickupDate,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Ответ от сервера:", data);
+        alert('Заказ оформлен успешно!');
+        navigate("/"); // Перенаправляем на главную страницу
+      })
+      .catch((error) => {
+        console.error('Ошибка:', error);
+        alert('Ошибка при оформлении заказа');
+      });
   };
 
   return (
@@ -51,3 +75,4 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
