@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=production
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./backend:/app/backend 
+
+networks:
+  app-network:
+    driver: bridge
